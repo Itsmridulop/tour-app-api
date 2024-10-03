@@ -1,0 +1,20 @@
+{
+  "name": "tour-app",
+  "version": "1.0.0",
+  "description": "Make your touring easier",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/Itsmridulop/tour-app"
+  },
+  "author": "Mridul",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "morgan": "^1.10.0"
+  }
+}
