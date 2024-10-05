@@ -1,6 +1,3 @@
-// CREATING A LAYOUT FINAL IMPLEMENTATION IS AFTER ADDING MONGO
-
-const fs = require('fs')
 const morgan = require('morgan')
 const express = require('express')
 const userRouter = require('./routers/user.router')
