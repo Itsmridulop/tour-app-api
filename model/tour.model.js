@@ -1,4 +1,5 @@
-const { Schema, model } = require('mongoose')
+const { Schema, model } = require('mongoose');
+const { default: slugify } = require('slugify');
 
 const tourSchema = Schema({
     name: {
@@ -6,6 +7,7 @@ const tourSchema = Schema({
         required: [true, 'A tour must have a name'],
         unique: [true, 'Name must be unique for each tour']
     },
+    slug: String,
     duration: {
         type: Number,
         required: [true, 'A tour must have a duration']
@@ -58,6 +60,29 @@ const tourSchema = Schema({
         select: false
     },
     startDates: [Date],
+    secretTour: {
+        type: Boolean,
+        default: false
+    }
+})
+
+tourSchema.virtual('durationWeek').get(function () {
+    return this.duration / 7;
+})
+
+tourSchema.pre('save', function (next) {
+    this.slug = slugify(this.name, { lower: true });
+    next()
+})
+
+tourSchema.pre(/^find/, function (next) {
+    this.find({ secretTour: { $ne: true } });
+    next();
+})
+
+tourSchema.pre('aggregate', function () {
+    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } })
+    next()
 })
 
 module.exports = model('Tour', tourSchema);
