@@ -83,3 +83,77 @@ exports.deleteTour = async (req, res) => {
         })
     }
 }
+
+exports.tourStats = async (req, res) => {
+    try {
+        const stats = await Tour.aggregate([
+            {
+                $match: { ratingsAverage: { $gte: 4.5 } }
+            },
+            {
+                $group: {
+                    _id: '$difficulty',
+                    avgRating: { $avg: '$ratingsAverage' },
+                    avgPrice: { $avg: '$price' },
+                    minPrice: { $min: '$price' },
+                    maxPrice: { $max: '$price' },
+                    numRatings: { $sum: '$ratingsQuantity' },
+                    numTours: { $sum: 1 }
+                }
+            },
+            {
+                $sort: { avgRating: -1 }
+            }
+        ])
+        res.status(200).json({
+            status: 'success',
+            data: stats
+        })
+    } catch (error) {
+        res.status(404).json({
+            status: 'fail',
+            message: error.message
+        })
+    }
+}
+
+exports.getMonthlyPlan = async (req, res) => {
+    try {
+        const plan = await Tour.aggregate([
+            {
+                $unwind: '$startDates'
+            },
+            {
+                $match: {
+                    startDates: { $gte: new Date('2021-01-01'), $lte: new Date('2021-12-31') }
+                }
+            },
+            {
+                $group: {
+                    _id: { $month: '$startDates' },
+                    numTour: { $sum: 1 },
+                    tours: { $push: '$name' }
+                }
+            },
+            {
+                $addFields: { month: '$_id'}
+            },
+            {
+                $project: { _id: 0 }
+            },
+            {
+                $sort: { month: 1 }
+            }
+        ])
+        res.status(200).json({
+            status: 'success',
+            results: plan.length,
+            data: plan
+        })
+    } catch (error) {
+        res.status(404).json({
+            status: 'fail',
+            message: error.message
+        })
+    }
+}
