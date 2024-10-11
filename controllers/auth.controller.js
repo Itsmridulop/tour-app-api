@@ -3,6 +3,8 @@ const User = require('../model/user.model')
 const catchAsync = require('../utils/catchAsync')
 const AppError = require('../utils/appError')
 
+const { promisify } = require('util')
+
 const signToken = id => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRES_IN
@@ -38,3 +40,18 @@ exports.login = catchAsync(async (req, res, next) => {
         token
     })
 })
+
+exports.protect = catchAsync(async (req, res, next) => {
+    let token
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1]
+    }
+    if (!token) return next(new AppError('you are not authorized.', 401))
+    const decode = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
+    const currentUser = await User.findById(decode.id)
+    if(!currentUser) return next(new AppError('This user is no longer exsit.', 401))
+    if(currentUser.isPasswordChaned(decode.iat)) return next(new AppError('This password is no longer valid.', 401)) 
+    req.user = currentUser
+    next()
+})
+
