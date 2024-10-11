@@ -1,5 +1,6 @@
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
+const crypto = require('crypto')
 
 const { Schema, model } = require('mongoose')
 
@@ -48,6 +49,8 @@ const userSchema = new Schema({
         select: false
     },
     passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date
 })
 
 
@@ -58,15 +61,30 @@ userSchema.pre('save', async function (next) {
     next()
 })
 
+userSchema.pre('save', function (next) {
+    if (!this.isModified('password') || this.isNew) return next()
+    this.passwordChangedAt = Date.now() - 1000
+    next()
+})
+
 userSchema.methods.correctPassword = async (candidatePassword, userPassword) => {
     return await bcrypt.compare(candidatePassword, userPassword)
 }
 
-userSchema.methods.isPasswordChaned = jwtTimespan => {
+userSchema.methods.isPasswordChaned = function(jwtTimespan) {
     if (this.passwordChangedAt) {
         return parseInt(this.passwordChangedAt.getTime() / 1000, 10) > jwtTimespan
     }
     return false
+}
+
+userSchema.index({ passwordResetExpires: 1 }, { expireAfterSeconds: 0 });
+
+userSchema.methods.createPasswordResetToken = function () {
+    const resetToken = crypto.randomBytes(32).toString('hex')
+    this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex')
+    this.passwordResetExpires = Date.now() + 10 * 60 * 1000
+    return resetToken
 }
 
 module.exports = model('User', userSchema)
