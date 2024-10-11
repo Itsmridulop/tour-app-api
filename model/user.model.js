@@ -40,16 +40,14 @@ const userSchema = new Schema({
             values: ['user', 'admin', 'guide', 'lead-guide'],
             message: 'You can be a user, admin, guide or lead-guide'
         },
+        default: 'user'
     },
     active: {
         type: Boolean,
         default: true,
         select: false
     },
-    passwordChangedAt: {
-        type: Date,
-        default: Date.now
-    }
+    passwordChangedAt: Date,
 })
 
 

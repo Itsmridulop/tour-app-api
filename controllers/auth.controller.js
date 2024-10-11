@@ -15,6 +15,8 @@ exports.signup = catchAsync(async (req, res, next) => {
     const newUser = await User.create({
         name: req.body.name,
         email: req.body.email,
+        photo: req.body.photo,
+        role: req.body.role,
         password: req.body.password,
         confirmPassword: req.body.confirmPassword
     })
@@ -24,7 +26,9 @@ exports.signup = catchAsync(async (req, res, next) => {
         token,
         data: {
             name: newUser.name,
-            email: newUser.email
+            email: newUser.email,
+            photo: newUser.photo,
+            role: newUser.role,
         }
     })
 })
@@ -49,9 +53,16 @@ exports.protect = catchAsync(async (req, res, next) => {
     if (!token) return next(new AppError('you are not authorized.', 401))
     const decode = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
     const currentUser = await User.findById(decode.id)
-    if(!currentUser) return next(new AppError('This user is no longer exsit.', 401))
-    if(currentUser.isPasswordChaned(decode.iat)) return next(new AppError('This password is no longer valid.', 401)) 
+    if (!currentUser) return next(new AppError('This user is no longer exsit.', 401))
+    if (currentUser.isPasswordChaned(decode.iat)) return next(new AppError('This password is no longer valid.', 401))
+    console.log(req)
     req.user = currentUser
     next()
 })
 
+exports.restrictTo = (...roles) => {
+    return catchAsync(async (req, res, next) => {
+        if (!roles.includes(req.user.role)) return next(new AppError('Permisson denided', 403))
+        next()
+    })
+}
