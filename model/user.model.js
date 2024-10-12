@@ -10,7 +10,7 @@ const userSchema = new Schema({
         required: [true, "User must have a name."],
         trim: true
     },
-    email: {
+        email: {
         type: String,
         required: [true, 'Please enter a email.'],
         unique: [true, 'User with this email is allready exist please try another Email.'],
@@ -77,8 +77,6 @@ userSchema.methods.isPasswordChaned = function(jwtTimespan) {
     }
     return false
 }
-
-userSchema.index({ passwordResetExpires: 1 }, { expireAfterSeconds: 0 });
 
 userSchema.methods.createPasswordResetToken = function () {
     const resetToken = crypto.randomBytes(32).toString('hex')
