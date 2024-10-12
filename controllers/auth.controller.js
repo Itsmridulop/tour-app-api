@@ -22,6 +22,13 @@ const signToken = id => {
 
 const createSendToken = (user, statusCode, res) => {
     const token = signToken(user._id)
+    const cookieOptions = {
+        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
+        httpOnly: true,
+        // secure: req.protocol === 'https',
+    }
+    res.cookie('token', token, cookieOptions)
+
     if (statusCode === 201) {
         res.status(statusCode).json({
             status: 'success',
@@ -44,7 +51,7 @@ const createSendToken = (user, statusCode, res) => {
 exports.signup = catchAsync(async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email })
     if (user) {
-        return next(new AppError('Email already in use', 400))
+        return next(new AppError('Email already in use, please try to login.', 400))
     }
     const newUser = await User.create({
         name: req.body.name,
