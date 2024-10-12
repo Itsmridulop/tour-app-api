@@ -42,6 +42,10 @@ const createSendToken = (user, statusCode, res) => {
 }
 
 exports.signup = catchAsync(async (req, res, next) => {
+    const user = await User.findOne({ email: req.body.email })
+    if (user) {
+        return next(new AppError('Email already in use', 400))
+    }
     const newUser = await User.create({
         name: req.body.name,
         email: req.body.email,
@@ -56,7 +60,11 @@ exports.signup = catchAsync(async (req, res, next) => {
 exports.login = catchAsync(async (req, res, next) => {
     const { email, password } = req.body
     if (!email || !password) return next(new AppError('Please enter a email and password.', 400))
-    const user = await User.findOne({ email }).select('+password')
+    const user = await User.findOne({ email }).select('+password').select('+active')
+    if (!user.active) {
+        user.active = true
+        await user.save({ validateBeforeSave: false })
+    }
     if (!user || !(await user.correctPassword(password, user.password))) return next(new AppError('Invalid email or password.', 401))
     createSendToken(user, 200, res)
 })
@@ -68,7 +76,7 @@ exports.protect = catchAsync(async (req, res, next) => {
     }
     if (!token) return next(new AppError('you are not authorized.', 401))
     const decode = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
-    const currentUser = await User.findById(decode.id)
+    const currentUser = await User.findOne({ _id: decode.id, active: true })
     if (!currentUser) return next(new AppError('This user is no longer exsit.', 401))
     if (currentUser.isPasswordChaned(decode.iat)) return next(new AppError('This password is no longer valid.', 401))
     req.user = currentUser

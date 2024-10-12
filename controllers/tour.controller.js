@@ -50,7 +50,10 @@ exports.updateTour = catchAsync(async (req, res, next) => {
 
 exports.deleteTour = catchAsync(async (req, res, next) => {
     if (!await Tour.findByIdAndDelete(req.params.id)) return next(new AppError('No Tour found', 404))
-    res.status(204).send('Tour is deleted successfully.')
+    res.status(204).json({
+        status: "success",
+        message: "Tour is deleted successfully."
+    })
 })
 
 exports.tourStats = catchAsync(async (req, res, next) => {
