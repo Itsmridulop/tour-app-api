@@ -1,6 +1,7 @@
 const AppError = require("../utils/appError")
 const catchAsync = require("../utils/catchAsync")
 const User = require('../model/user.model')
+const APIFeatures = require("../utils/APIFeatures")
 
 const filter = (obj, ...allowedField) => {
     const filtered = {}
@@ -13,7 +14,8 @@ const filter = (obj, ...allowedField) => {
 }
 
 exports.getUsers = catchAsync(async (req, res) => {
-    const user = await User.find({active: true})
+    const features = new APIFeatures(User.find({active: true}), req.query).fieldSelect()
+    const user = await features.query
     res.status(200).json({
         status: 'success',
         results: user.length,

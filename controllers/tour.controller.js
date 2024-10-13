@@ -1,6 +1,7 @@
 const Tour = require('../model/tour.model')
 const APIFeatures = require('../utils/APIFeatures')
 const AppError = require('../utils/appError')
+const User = require('../model/user.model')
 const catchAsync = require('../utils/catchAsync')
 
 exports.topTours = async (req, _, next) => {
@@ -20,7 +21,8 @@ exports.getTours = catchAsync(async (req, res, next) => {
 })
 
 exports.getOneTour = catchAsync(async (req, res, next) => {
-    const tour = await Tour.findById(req.params.id)
+    const features = new APIFeatures(Tour.findById(req.params.id), req.query).filter().fieldSelect()
+    const tour = await features.query
     if (!tour) return next(new AppError('No tour found', 404))
     res.status(200).json({
         status: "success",
@@ -29,12 +31,27 @@ exports.getOneTour = catchAsync(async (req, res, next) => {
 })
 
 exports.createTour = catchAsync(async (req, res, next) => {
+    const users = await User.find({
+        email: { $in: req.body.guides },
+        role: { $in: ['guide', 'lead-guide'] }
+    }).select('_id email')
+    const emailToUserIdMap = users.reduce((acc, user) => {
+        acc[user.email] = user._id
+        return acc
+    }, {})
+    req.body.guides = req.body.guides.map(email => {
+        if (!emailToUserIdMap[email]) {
+            return next(new AppError(`Invalid email: ${email}`, 400))
+        }
+        return emailToUserIdMap[email]
+    })
     const newTour = await Tour.create(req.body)
     res.status(200).json({
         status: 'success',
         data: newTour
     })
 })
+
 
 exports.updateTour = catchAsync(async (req, res, next) => {
     const udatedTour = await Tour.findByIdAndUpdate(req.params.id, req.body, {

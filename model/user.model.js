@@ -10,7 +10,7 @@ const userSchema = new Schema({
         required: [true, "User must have a name."],
         trim: true
     },
-        email: {
+    email: {
         type: String,
         required: [true, 'Please enter a email.'],
         unique: [true, 'User with this email is allready exist please try another Email.'],
@@ -71,7 +71,7 @@ userSchema.methods.correctPassword = async (candidatePassword, userPassword) => 
     return await bcrypt.compare(candidatePassword, userPassword)
 }
 
-userSchema.methods.isPasswordChaned = function(jwtTimespan) {
+userSchema.methods.isPasswordChaned = function (jwtTimespan) {
     if (this.passwordChangedAt) {
         return parseInt(this.passwordChangedAt.getTime() / 1000, 10) > jwtTimespan
     }

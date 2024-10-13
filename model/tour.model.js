@@ -1,3 +1,5 @@
+const User = require('../model/user.model')
+
 const { Schema, model } = require('mongoose');
 const { default: slugify } = require('slugify');
 
@@ -44,7 +46,7 @@ const tourSchema = Schema({
     discount: {
         type: Number,
         validate: {
-            validator: function(val) {
+            validator: function (val) {
                 return this.price > val
             },
             message: 'Discount must be lesser then accual price.'
@@ -74,7 +76,33 @@ const tourSchema = Schema({
     secretTour: {
         type: Boolean,
         default: false
-    }
+    },
+    startLocation: {
+        type: {
+            type: String,
+            default: 'Point',
+            enum: ['Point']
+        },
+        coordinates: [Number],
+        address: String,
+        description: String
+    },
+    locations: [{
+        type: {
+            type: String,
+            default: 'Point',
+            enum: ['Point']
+        },
+        coordinates: [Number],
+        description: String,
+        day: Number
+    }],
+    guides: [{
+        type: Schema.ObjectId,
+        ref: 'User'
+    }]
+}, {
+    toJSON: { virtual: true },
 })
 
 tourSchema.virtual('durationWeek').get(function () {
@@ -83,6 +111,22 @@ tourSchema.virtual('durationWeek').get(function () {
 
 tourSchema.pre('save', function (next) {
     this.slug = slugify(this.name, { lower: true });
+    next()
+})
+
+// this code is to embed all data of related guide in tours document
+
+// tourSchema.pre('save', async function(next) {
+//     const guidesPromise = this.guides.map(async id => await User.findById(id).select(['name', 'email', 'role']))
+//     this.guides = await Promise.all(guidesPromise)
+//     next()
+// })
+
+tourSchema.pre(/^find/, function(next) {
+    this.populate({
+        path: 'guides',
+        select: '-__v -passwordChangedAt'
+    })
     next()
 })
 
