@@ -21,7 +21,7 @@ exports.getTours = catchAsync(async (req, res, next) => {
 })
 
 exports.getOneTour = catchAsync(async (req, res, next) => {
-    const features = new APIFeatures(Tour.findById(req.params.id), req.query).filter().fieldSelect()
+    const features = new APIFeatures(Tour.findById(req.params.id).populate('reviews'), req.query).filter().fieldSelect()
     const tour = await features.query
     if (!tour) return next(new AppError('No tour found', 404))
     res.status(200).json({
@@ -46,7 +46,7 @@ exports.createTour = catchAsync(async (req, res, next) => {
         return emailToUserIdMap[email]
     })
     const newTour = await Tour.create(req.body)
-    res.status(200).json({
+    res.status(201).json({
         status: 'success',
         data: newTour
     })

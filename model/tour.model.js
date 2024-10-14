@@ -1,4 +1,4 @@
-const User = require('../model/user.model')
+// const User = require('../model/user.model')
 
 const { Schema, model } = require('mongoose');
 const { default: slugify } = require('slugify');
@@ -102,11 +102,18 @@ const tourSchema = Schema({
         ref: 'User'
     }]
 }, {
-    toJSON: { virtual: true },
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 })
 
 tourSchema.virtual('durationWeek').get(function () {
     return this.duration / 7;
+})
+
+tourSchema.virtual('reviews', {
+    ref: 'Review',
+    localField: '_id',
+    foreignField: 'tour'
 })
 
 tourSchema.pre('save', function (next) {
