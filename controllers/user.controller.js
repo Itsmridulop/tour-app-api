@@ -2,6 +2,7 @@ const AppError = require("../utils/appError")
 const catchAsync = require("../utils/catchAsync")
 const User = require('../model/user.model')
 const APIFeatures = require("../utils/APIFeatures")
+const factory = require("./handlerFactory")
 
 const filter = (obj, ...allowedField) => {
     const filtered = {}
@@ -13,19 +14,9 @@ const filter = (obj, ...allowedField) => {
     return filtered
 }
 
-exports.getUsers = catchAsync(async (req, res) => {
-    const features = new APIFeatures(User.find({active: true}), req.query).fieldSelect()
-    const user = await features.query
-    res.status(200).json({
-        status: 'success',
-        results: user.length,
-        data: user
-    }) 
-})
-
 exports.updateMe = catchAsync(async (req, res, next) => {
     if (req.body.password || req.body.passwordConfirm) return next(new AppError('Unable to update your password.', 400))
-    const filteredBody = filter(req.body, 'name', 'email')
+        const filteredBody = filter(req.body, 'name', 'email')
     const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, { new: true, runValidators: true })
     res.status(200).json({
         status: 'success',
@@ -41,27 +32,8 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     })
 })
 
-exports.getOneUser = (req, res) => {
-    res.status(200).json({
-        status: 'success',
-        data: '<DATA OF ONE USER>'
-    })
-}
-
-exports.createUser = (req, res) => {
-    res.status(201).json({
-        status: 'success',
-        data: '<DATA OF NEW USER>'
-    })
-}
-
-exports.updateUser = (req, res) => {
-    res.status(200).json({
-        status: 'success',
-        data: '<DATA OF UPDATED USER>'
-    })
-}
-
-exports.deleteUser = (req, res) => {
-    res.status(204).send('User is deleted successfully.')
-}
+exports.getUsers = factory.getAll(User)
+exports.getOneUser = factory.getOne(User)
+exports.createUser = factory.createOne(User)
+exports.updateUser = factory.updateOne(User)
+exports.deleteUser = factory.deleteOne(User)
