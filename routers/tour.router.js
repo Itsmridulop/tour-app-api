@@ -8,10 +8,10 @@ const router = express.Router()
 
 router.use('/:tourId/reviews', protect, reviewRouter)
 
-router.get('/', protect, getTours)
+router.get('/', getTours)
 router.post('/', protect, restrictTo('admin', 'lead-guide'), createTour)
 router.get('/stats', protect, restrictTo('admin'), tourStats)
-router.get('/monthly-plan', protect, restrictTo('admin', 'lead-guide'), getMonthlyPlan)
+router.get('/monthly-plan', protect, restrictTo('admin', 'lead-guide', 'guide'), getMonthlyPlan)
 router.get('/top-5-tours',protect, topTours, getTours)
 router.get('/:id', protect, getOneTour)
 router.delete('/:id', protect, restrictTo('admin', 'lead-guide'), deleteTour)

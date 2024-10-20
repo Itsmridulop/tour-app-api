@@ -1,12 +1,14 @@
 const express = require('express')
 const { protect, restrictTo } = require('../controllers/auth.controller')
-const { getAllReview, createReview, updateReview, deleteReview } = require('../controllers/review.controller')
+const { getAllReview, createReview, updateReview, deleteReview, getDailyReview } = require('../controllers/review.controller')
 
 const router = express.Router({ mergeParams: true })
 
-router.get('/', protect, restrictTo('admin', 'lead-guide'), getAllReview)
-router.post('/', protect, restrictTo('user'), createReview)
-router.delete('/:id',  protect, restrictTo('user'), deleteReview)
-router.patch('/:id',  protect, restrictTo('user'), updateReview)
+router.use(protect)
+// router.get('/dailyReviews', restrictTo('admin', 'lead-guide'), getDailyReview, getAllReview)
+router.get('/', restrictTo('admin', 'lead-guide'), getAllReview)
+router.post('/', restrictTo('user'), createReview)
+router.delete('/:id', restrictTo('user'), deleteReview)
+router.patch('/:id', restrictTo('user'), updateReview)
 
 module.exports = router

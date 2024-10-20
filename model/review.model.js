@@ -13,7 +13,7 @@ const reviewSchema = new Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now 
+        default: Date.now
     },
     user: {
         type: Schema.Types.ObjectId,
@@ -26,15 +26,21 @@ const reviewSchema = new Schema({
         required: [true, 'Review must belong to a tour']
     }
 }, {
-    toJSON: {virtuals: true},
-    toObject: {virtuals: true}
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 })
 
-reviewSchema.pre(/^find/, function(next) {
+reviewSchema.pre(/^find/, function (next) {
+    console.log(this._conditions.tour)
     this.populate({
         path: 'user',
         select: 'name photo'
     })
+    if (!this._conditions.tour)
+        this.populate({
+            path: 'tour',
+            select: 'name'
+        })
     next()
 })
 

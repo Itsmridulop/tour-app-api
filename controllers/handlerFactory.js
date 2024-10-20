@@ -33,7 +33,7 @@ exports.createOne = model => catchAsync(async (req, res, next) => {
 })
 
 exports.getOne = (model, populate) => catchAsync(async (req, res, next) => {
-    let features = new APIFeatures(model.findById(req.params.id), req.query).filter().fieldSelect()
+    let features = new APIFeatures(model.findById(req.params.id || req.user.id), req.query).filter().fieldSelect()
     if(populate) features.query = features.query.populate(populate)
     const document = await features.query
     if (!document) return next(new AppError('No document found', 404))
