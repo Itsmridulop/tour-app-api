@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose')
+const Tour = require('./tour.model')
 
 const reviewSchema = new Schema({
     rating: {
@@ -28,6 +29,52 @@ const reviewSchema = new Schema({
 }, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
+})
+
+reviewSchema.index({ user: 1, tour: 1 }, {
+    unique: true
+})
+
+reviewSchema.statics.calAverageRating = async function (tourId) {
+    const stats = await this.aggregate([
+        {
+            $match: { tour: tourId }
+        },
+        {
+            $group: {
+                _id: '$tour',
+                avgRating: { $avg: '$rating' },
+                nRating: { $sum: 1 }
+            }
+        }
+    ])
+    console.log(stats)
+    if (stats[0].length > 0) {
+        console.log('if')
+        await Tour.findByIdAndUpdate(tourId, {
+            ratingsAverage: stats[0].avgRating,
+            ratingsQuantity: stats[0].nRating
+        })
+    } else {
+        console.log('else')
+        await Tour.findByIdAndUpdate(tourId, {
+            ratingsAverage: 4.5,
+            ratingsQuantity: 0
+        })
+    }
+}
+
+reviewSchema.post('save', function () {
+    this.constructor.calAverageRating(this.tour)
+})
+
+reviewSchema.pre(/^findOneAnd/, async function(next) {
+    this.reviewData = await this.findOne()
+    next()
+})
+
+reviewSchema.post(/^findOneAnd/, async function() {
+    if(this.reviewData) await this.reviewData.constructor.calAverageRating(this.reviewData.tour)
 })
 
 reviewSchema.pre(/^find/, function (next) {

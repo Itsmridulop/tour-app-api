@@ -68,11 +68,11 @@ exports.login = catchAsync(async (req, res, next) => {
     const { email, password } = req.body
     if (!email || !password) return next(new AppError('Please enter a email and password.', 400))
     const user = await User.findOne({ email }).select('+password').select('+active')
+    if (!user || !(await user.correctPassword(password, user.password))) return next(new AppError('Invalid email or password.', 401))
     if (!user.active) {
         user.active = true
         await user.save({ validateBeforeSave: false })
     }
-    if (!user || !(await user.correctPassword(password, user.password))) return next(new AppError('Invalid email or password.', 401))
     createSendToken(user, 200, res)
 })
 
@@ -128,9 +128,9 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     const user = await User.findOne({ passwordResetToken: hashResetPassword, passwordResetExpires: { $gt: Date.now() } })
     if (!user) return next(new AppError('Your session is expired.', 400))
     user.password = req.body.password,
-    user.confirmPassword = req.body.confirmPassword,
-    user.passwordResetToken = undefined,
-    user.passwordResetExpires = undefined
+        user.confirmPassword = req.body.confirmPassword,
+        user.passwordResetToken = undefined,
+        user.passwordResetExpires = undefined
     await user.save()
     createSendToken(user, 200, res)
 })
