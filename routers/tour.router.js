@@ -1,6 +1,6 @@
 const express = require('express')
 
-const { getTours, getOneTour, createTour, deleteTour, updateTour, topTours, tourStats, getMonthlyPlan, gettoursWithin } = require('../controllers/tour.controller')
+const { getTours, getOneTour, createTour, deleteTour, updateTour, topTours, tourStats, getMonthlyPlan, gettoursWithin, getDistance } = require('../controllers/tour.controller')
 const { protect, restrictTo } = require('../controllers/auth.controller')
 const reviewRouter = require('./review.router')
 

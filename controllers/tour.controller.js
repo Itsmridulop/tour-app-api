@@ -69,7 +69,7 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     })
 })
 
-exports.gettoursWithin = catchAsync(async (req, res, next) => {
+exports.getDistance = catchAsync(async (req, res, next) => {
     const { latlng, unit } = req.params;
     const [lat, lng] = latlng.split(',')
     if (!lng || !lat) next(AppError('Please provide longitude and latitude in a proper order (lat,lng)'))
