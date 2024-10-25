@@ -48,7 +48,7 @@ reviewSchema.statics.calAverageRating = async function (tourId) {
             }
         }
     ])
-    console.log(stats)
+
     if (stats[0].length > 0) {
         console.log('if')
         await Tour.findByIdAndUpdate(tourId, {

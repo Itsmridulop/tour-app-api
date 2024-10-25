@@ -106,8 +106,9 @@ const tourSchema = Schema({
     toObject: { virtuals: true }
 })
 
-tourSchema.index({price: -1, ratingsAverage: -1})
-tourSchema.index({slug: 1})
+tourSchema.index({ price: -1, ratingsAverage: -1 })
+tourSchema.index({ slug: 1 })
+tourSchema.index({ startLocation: '2dsphere' })
 
 tourSchema.virtual('durationWeek').get(function () {
     return this.duration / 7;
@@ -133,7 +134,7 @@ tourSchema.pre('save', function (next) {
 //     next()
 // })
 
-tourSchema.pre(/^find/, function(next) {
+tourSchema.pre(/^find/, function (next) {
     this.populate({
         path: 'guides',
         select: '-__v -passwordChangedAt'
