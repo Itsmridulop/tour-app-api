@@ -20,6 +20,7 @@ const signToken = id => {
     })
 }
 
+
 const createSendToken = (user, statusCode, res) => {
     const token = signToken(user._id)
     const cookieOptions = {
@@ -29,23 +30,16 @@ const createSendToken = (user, statusCode, res) => {
     }
     res.cookie('token', token, cookieOptions)
 
-    if (statusCode === 201) {
-        res.status(statusCode).json({
-            status: 'success',
-            token,
-            data: {
-                name: user.name,
-                email: user.email,
-                photo: user.photo,
-                role: user.role,
-            }
-        })
-    } else {
-        res.status(statusCode).json({
-            status: "success",
-            token
-        })
-    }
+    res.status(statusCode).json({
+        status: 'success',
+        token,
+        data: {
+            name: user.name,
+            email: user.email,
+            photo: user.photo,
+            role: user.role,
+        }
+    })
 }
 
 exports.signup = catchAsync(async (req, res, next) => {
