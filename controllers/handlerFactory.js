@@ -36,10 +36,10 @@ exports.getOne = (model, populate) => catchAsync(async (req, res, next) => {
     let features = new APIFeatures(model.findById(req.params.id || req.user.id), req.query).filter().fieldSelect()
     if(populate) features.query = features.query.populate(populate)
     const document = await features.query
-    if (!document) return next(new AppError('No document found', 404))
+    if (document.length === 0) return next(new AppError('No document found', 404))
     res.status(200).json({
         status: 'success',
-        data: document
+        data: document[0]
     })
 })
 
