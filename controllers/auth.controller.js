@@ -20,7 +20,6 @@ const signToken = id => {
     })
 }
 
-
 const createSendToken = (user, statusCode, res) => {
     const token = signToken(user._id)
     const cookieOptions = {
@@ -96,7 +95,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     if (!user) return next(new AppError('This email is not registered.', 404))
     const resetToken = user.createPasswordResetToken()
     await user.save({ validateBeforeSave: false })
-    const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/users/resetPassword/${resetToken}`
+    const resetUrl = `${req.protocol}://localhost:5173/resetPassword/${resetToken}`
     const message = `Forgot your password? Click here to reset your password: ${resetUrl}. If not then ignore this email.`
     try {
         sendEmail({
