@@ -13,22 +13,23 @@ exports.deleteOne = model => catchAsync(async (req, res, next) => {
 
 
 exports.updateOne = model => catchAsync(async (req, res, next) => {
-    const udatedTour = await model.findByIdAndUpdate(req.params.id, req.body, {
+    const udatedDocument = await model.findByIdAndUpdate(req.params.id, req.body, {
         new: true,
         runValidators: true
     })
-    if (!udatedTour) return next(new AppError('No document found', 404))
+    if (!udatedDocument) return next(new AppError('No document found', 404))
     res.status(200).json({
         status: 'success',
-        data: udatedTour
+        data: udatedDocument
     })
 })
 
 exports.createOne = model => catchAsync(async (req, res, next) => {
-    const newReview = await model.create({ ...req.body, user: req.user.id, tour: req.params.tourId })
-    res.status(201).json({
+    const newDocument = await model.create({ ...req.body, user: req.user.id, tour: req.params.tourId })
+    newDocument.password = undefined
+    res.status(201).json(   {
         status: 'success',
-        data: newReview
+        data: newDocument
     })
 })
 
