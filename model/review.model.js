@@ -50,13 +50,11 @@ reviewSchema.statics.calAverageRating = async function (tourId) {
     ])
 
     if (stats[0].length > 0) {
-        console.log('if')
         await Tour.findByIdAndUpdate(tourId, {
             ratingsAverage: stats[0].avgRating,
             ratingsQuantity: stats[0].nRating
         })
     } else {
-        console.log('else')
         await Tour.findByIdAndUpdate(tourId, {
             ratingsAverage: 4.5,
             ratingsQuantity: 0
@@ -78,7 +76,6 @@ reviewSchema.post(/^findOneAnd/, async function() {
 })
 
 reviewSchema.pre(/^find/, function (next) {
-    console.log(this._conditions.tour)
     this.populate({
         path: 'user',
         select: 'name photo'
