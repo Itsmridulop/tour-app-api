@@ -28,7 +28,6 @@ const createSendToken = (user, statusCode, res) => {
         // secure: req.protocol === 'https',
     }
     res.cookie('token', token, cookieOptions)
-
     res.status(statusCode).json({
         status: 'success',
         token,
