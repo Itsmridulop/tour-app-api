@@ -1,23 +1,23 @@
 const express = require('express')
-
-const { getTours, getOneTour, createTour, deleteTour, updateTour, topTours, tourStats, getMonthlyPlan, gettoursWithin, getDistance } = require('../controllers/tour.controller')
-const { protect, restrictTo } = require('../controllers/auth.controller')
-const reviewRouter = require('./review.router')
+const { getUsers, getOneUser, createUser, deleteUser, updateUser, updateMe, deleteMe, getMe, uploadUserImage, resizeImage } = require('../controllers/user.controller')
+const { signup, login, forgotPassword, resetPassword, updatePassword, protect, restrictTo } = require('../controllers/auth.controller')
 
 const router = express.Router()
 
-router.use('/:tourId/reviews', protect, reviewRouter)
-
-router.get('/', getTours)
-router.get('/top-5-tours', topTours, getTours)
-router.get('/tour-within/:distance/center/:latlng/unit/:unit', gettoursWithin)
+router.post('/signup', signup)
+router.post('/login', login)
+router.post('/forgotPassword', forgotPassword)
+router.patch('/resetPassword/:token', resetPassword)
 router.use(protect)
-router.get('/distance', getDistance)
-router.post('/', restrictTo('admin', 'lead-guide'), createTour)
-router.get('/stats', restrictTo('admin'), tourStats)
-router.get('/monthly-plan', restrictTo('admin', 'lead-guide', 'guide'), getMonthlyPlan)
-router.get('/:id', getOneTour)
-router.delete('/:id', restrictTo('admin', 'lead-guide'), deleteTour)
-router.patch('/:id', restrictTo('admin', 'lead-guide'), updateTour)
+router.patch('/updatePassword', updatePassword)
+router.get('/me', getMe)
+router.patch('/updateMe', uploadUserImage, resizeImage, updateMe)
+router.delete('/deleteMe', deleteMe)
+router.use(restrictTo('admin'))
+router.get('/', getUsers)
+router.post('/', uploadUserImage, resizeImage, createUser)
+router.get('/:id', getOneUser)
+router.delete('/:id', deleteUser)
+router.patch('/:id', updateUser)
 
-module.exports = router
+module.exports = router;
