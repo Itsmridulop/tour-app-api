@@ -49,7 +49,7 @@ reviewSchema.statics.calAverageRating = async function (tourId) {
         }
     ])
 
-    if (stats[0].length > 0) {
+    if (stats.length > 0) {
         await Tour.findByIdAndUpdate(tourId, {
             ratingsAverage: stats[0].avgRating,
             ratingsQuantity: stats[0].nRating
@@ -66,13 +66,17 @@ reviewSchema.post('save', function () {
     this.constructor.calAverageRating(this.tour)
 })
 
-reviewSchema.pre(/^findOneAnd/, async function(next) {
-    this.reviewData = await this.findOne()
-    next()
-})
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+    const reviewData = await this.model.findOne(this.getQuery());
+    this.reviewData = reviewData;
+    next();
+});
 
-reviewSchema.post(/^findOneAnd/, async function() {
-    if(this.reviewData) await this.reviewData.constructor.calAverageRating(this.reviewData.tour)
+
+reviewSchema.post(/^findOneAnd/, async function () {
+    console.log(this.reviewData)
+    await this.reviewData.constructor.calAverageRating(this.reviewData.tour)
+    console.log('after')
 })
 
 reviewSchema.pre(/^find/, function (next) {
