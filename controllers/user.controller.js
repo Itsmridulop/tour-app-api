@@ -2,9 +2,9 @@ const AppError = require("../utils/appError")
 const catchAsync = require("../utils/catchAsync")
 const User = require('../model/user.model')
 const factory = require("./handlerFactory")
-const multer = require('multer')
+const cloudinary = require('cloudinary').v2
 const sharp = require("sharp")
-const { assign } = require("nodemailer/lib/shared")
+const upload = require('../cloudinary.config')
 
 // Set how and where files are stored on the system
 // const multerStorage = multer.diskStorage({
@@ -17,32 +17,40 @@ const { assign } = require("nodemailer/lib/shared")
 //     }
 // })
 
-// set image to mwmory (RAM) as buffer
-const multerStorage = multer.memoryStorage()
-
-
-// Check if the uploaded file is an image
-const multerFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image')) {
-        cb(null, true) // Accept file if it’s an image
-    } else {
-        cb(new AppError('Not an image! Please upload only images.', 400), false) // Reject if not an image
-    }
-}
-
-// Initialize multer with a specified destination for user image uploads
-const upload = multer({ storage: multerStorage, fileFilter: multerFilter })
+// Middleware to handle single file upload for 'photo' field
+exports.uploadUserImage = upload.single('photo')
 
 // resize and format image to jpg
 exports.resizeImage = catchAsync(async (req, res, next) => {
-    if(!req.file) return next()
-    req.file.filename = `user-${req.user.id}-${Date.now()}.jpg`
-    await sharp(req.file.buffer).resize(500, 500).toFormat('jpg').jpeg({quality: 100}).toFile(`public/img/users/${req.file.filename}`)
-    next()
+    try {
+        if (!req.file) return next();
+
+        // Generate a filename
+        const filename = `user-${req.user.id}-${Date.now()}.jpg`;
+
+        // Resize image using sharp and get buffer
+        const buffer = await sharp(req.file.buffer).resize(500, 500).toFormat('jpg').jpeg({ quality: 100 }).toBuffer();
+
+        // Upload buffer to Cloudinary
+        const result = cloudinary.uploader.upload_stream(
+            { resource_type: 'image', public_id: filename },
+            (error, uploadedImage) => {
+                if (error) return next(error);
+
+                // Attach Cloudinary URL to req.file for further processing
+                req.body.photo = uploadedImage.secure_url;
+                next();
+            }
+        );
+
+        // Use sharp buffer as input for Cloudinary upload stream
+        require('streamifier').createReadStream(buffer).pipe(result);
+
+    } catch (error) {
+        return next(error);
+    }
 })
 
-// Middleware to handle single file upload for 'photo' field
-exports.uploadUserImage = upload.single('photo')
 
 // Filters an object to only include allowed fields
 const filter = (obj, ...allowedField) => {
@@ -59,7 +67,7 @@ const filter = (obj, ...allowedField) => {
 exports.updateMe = catchAsync(async (req, res, next) => {
     if (req.body.password || req.body.passwordConfirm) return next(new AppError('Unable to update your password.', 400))
     const filteredBody = filter(req.body, 'name', 'photo')
-    if(req.file) filteredBody.photo = req.file.filename
+    // if (req.file) filteredBody.photo = req.file.cloudinaryUrl
     const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, { new: true, runValidators: true })
     res.status(200).json({
         status: 'success',
