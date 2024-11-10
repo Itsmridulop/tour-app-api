@@ -1,18 +1,11 @@
 const Tour = require('../model/tour.model')
+const cloudinary = require('cloudinary').v2
 const AppError = require('../utils/appError')
 const catchAsync = require('../utils/catchAsync')
 const factory = require('./handlerFactory')
-const multer = require('multer')
+const streamifier = require('streamifier')
 const sharp = require('sharp')
-
-const multerStorage = multer.memoryStorage()
-
-const multerFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image')) cb(null, true)
-    else cb(new AppError('Not an image! Please upload only images.', 400), false)
-}
-
-const upload = multer({ storage: multerStorage, fileFilter: multerFilter })
+const upload = require('../cloudinary.config')
 
 exports.uploadTourImage = upload.fields([
     { name: 'imageCover', maxCount: 1 },
@@ -20,20 +13,46 @@ exports.uploadTourImage = upload.fields([
 ])
 
 exports.resizeTourImage = catchAsync(async (req, res, next) => {
-    if (!req.files.imageCover && !req.files.images) return next()
-    if (req.files.imageCover) {
-        req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpg`;
-        await sharp(req.files.imageCover[0].buffer).resize(2000, 1333).toFormat('jpg').jpeg({ quality: 90 }).toFile(`public/img/tours/${req.body.imageCover}`)
+    try {
+        if (!req.files.imageCover && !req.files.images) return next();
+        if (req.files.imageCover) {
+            const filename = `tour-${req.params.id}-${Date.now()}-cover.jpg`;
+            const buffer = await sharp(req.files.imageCover[0].buffer).resize(2000, 1333).toFormat('jpg').jpeg({ quality: 100 }).toBuffer();
+            await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { resource_type: 'image', public_id: filename },
+                    (error, uploadedImage) => {
+                        if (error) return reject(error);
+                        req.body.imageCover = uploadedImage.secure_url;
+                        resolve();
+                    }
+                );
+                streamifier.createReadStream(buffer).pipe(stream);
+            });
+        }
+
+        if (req.files.images) {
+            req.body.images = await Promise.all(
+                req.files.images.map(async (file, idx) => {
+                    const filename = `tour-${req.params.id}-${Date.now()}-${idx + 1}.jpg`;
+                    const buffer = await sharp(file.buffer).resize(2000, 1333).toFormat('jpeg').jpeg({ quality: 100 }).toBuffer();
+                    return new Promise((resolve, reject) => {
+                        const stream = cloudinary.uploader.upload_stream(
+                            { resource_type: 'image', public_id: filename },
+                            (error, uploadedImage) => {
+                                if (error) return reject(error);
+                                resolve(uploadedImage.secure_url);
+                            }
+                        );
+                        streamifier.createReadStream(buffer).pipe(stream);
+                    });
+                })
+            );
+        }
+        next();
+    } catch (error) {
+        return next(error)
     }
-    if (req.files.images) {
-        req.body.images = []
-        await Promise.all(req.files.images.map(async (file, idx) => {
-            const filename = `tour-${req.params.id}-${Date.now()}-${idx + 1}.jpg`
-            await sharp(file.buffer).resize(2000, 1333).toFormat('jpeg').jpeg({ quality: 90 }).toFile(`public/img/tours/${filename}`);
-            req.body.images.push(filename)
-        }))
-    }
-    next()
 })
 
 exports.topTours = async (req, _, next) => {
