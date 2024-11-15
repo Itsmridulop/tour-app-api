@@ -18,6 +18,6 @@ router.get('/', getUsers)
 router.post('/', uploadUserImage, resizeImage, createUser)
 router.get('/:id', getOneUser)
 router.delete('/:id', deleteUser)
-router.patch('/:id', updateUser)
+router.patch('/:id',uploadUserImage, resizeImage, updateUser)
 
 module.exports = router;
