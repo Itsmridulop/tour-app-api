@@ -3,6 +3,7 @@ const express = require('express')
 const userRouter = require('./routers/user.router')
 const tourRouter = require('./routers/tour.router')
 const reviewRouter = require('./routers/review.router')
+const bookingRouter = require('./routers/booking.route')
 const AppError = require('./utils/appError')
 const globalErrorHandler = require('./controllers/error.controller')
 const rateLimiit = require('express-rate-limit')
@@ -10,6 +11,7 @@ const helmet = require('helmet')
 const mongoSanitize = require('express-mongo-sanitize')
 const xss = require('xss-clean')
 const hpp = require('hpp')
+const cors = require('cors')
 
 const app = express()
 
@@ -18,6 +20,9 @@ const limiter = rateLimiit({
     max: 100,
     message: 'Too many request, please try again after an hour'
 })
+
+
+app.use(cors())
 
 app.use(
     helmet({
@@ -79,6 +84,8 @@ app.use('/api', limiter)
 app.use('/api/v1/tours', tourRouter)
 app.use('/api/v1/users', userRouter)
 app.use('/api/v1/reviews', reviewRouter)
+app.use('/api/v1/bookings', bookingRouter)
+
 
 app.all('*', (req, res, next) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404))
