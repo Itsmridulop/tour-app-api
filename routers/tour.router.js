@@ -1,6 +1,6 @@
 const express = require('express')
 const reviewRouter = require('./review.router')
-const { getTours, getOneTour, createTour, deleteTour, updateTour, topTours, tourStats, getMonthlyPlan, gettoursWithin, getDistance, resizeTourImage, uploadTourImage, } = require('../controllers/tour.controller')
+const { getTours, getOneTour, createTour, deleteTour, updateTour, topTours, tourStats, getMonthlyPlan, gettoursWithin, getDistance, resizeTourImage, uploadTourImage, FindGuideId } = require('../controllers/tour.controller')
 const { protect, restrictTo } = require('../controllers/auth.controller')
 
 const router = express.Router()
@@ -17,6 +17,6 @@ router.get('/stats', restrictTo('admin'), tourStats)
 router.get('/monthly-plan', restrictTo('admin', 'lead-guide', 'guide'), getMonthlyPlan)
 router.get('/:id', getOneTour)
 router.delete('/:id', restrictTo('admin', 'lead-guide'), deleteTour)
-router.patch('/:id', restrictTo('admin', 'lead-guide'), uploadTourImage, resizeTourImage, updateTour)
+router.patch('/:id', restrictTo('admin', 'lead-guide'), uploadTourImage, resizeTourImage, FindGuideId,updateTour)
 
 module.exports = router
