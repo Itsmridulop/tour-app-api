@@ -25,7 +25,7 @@ exports.updateOne = model => catchAsync(async (req, res, next) => {
 })
 
 exports.createOne = model => catchAsync(async (req, res, next) => {
-    const newDocument = await model.create({ ...req.body, user: req.user.id, tour: req.params.tourId })
+    const newDocument = await model.create({ ...req.body, user: req.user.id, tour: req.params.tourId || req.body.tour})
     newDocument.password = undefined
     res.status(201).json(   {
         status: 'success',
