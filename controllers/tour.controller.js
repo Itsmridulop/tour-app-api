@@ -58,12 +58,12 @@ exports.resizeTourImage = catchAsync(async (req, res, next) => {
 
 exports.FindGuideId = catchAsync(async (req, res, next) => {
     const guideArr = await Promise.all(req.body.guides.map(async guide => {
-        const guideDoc = await User.findOne(guide)
-        if(!guideDoc) next(new AppError(`${guide.email} this email does not exist.`, 404))
+        const guideDoc = await User.findOneAndUpdate({ email: guide.email }, { $addToSet: { tour: req.params.id } }, { new: true })
+        if (!guideDoc) next(new AppError(`${guide.email} this email does not exist.`, 404))
         return guideDoc
     }))
     guideArr.map((guide, index) => {
-        if(guide.role !== 'guide' && guide.role !== 'lead-guide') next(new AppError('Entered email does not belongs to any guide.', 400))
+        if (guide.role !== 'guide' && guide.role !== 'lead-guide') next(new AppError('Entered email does not belongs to any guide.', 400))
         req.body.guides[index] = guide._id
     })
     next()
