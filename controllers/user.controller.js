@@ -1,6 +1,7 @@
 const AppError = require("../utils/appError")
 const catchAsync = require("../utils/catchAsync")
 const User = require('../model/user.model')
+const Tour = require('../model/tour.model')
 const factory = require("./handlerFactory")
 const cloudinary = require('cloudinary').v2
 const sharp = require("sharp")
@@ -67,7 +68,7 @@ const filter = (obj, ...allowedField) => {
 exports.updateMe = catchAsync(async (req, res, next) => {
     if (req.body.password || req.body.passwordConfirm) return next(new AppError('Unable to update your password.', 400))
     const filteredBody = filter(req.body, 'name', 'photo')
-    // if (req.file) filteredBody.photo = req.file.cloudinaryUrl
+    console.log(filteredBody)
     const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, { new: true, runValidators: true })
     res.status(200).json({
         status: 'success',
@@ -82,6 +83,21 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
         status: 'success',
         message: 'Your account is deleted successfully.'
     })
+})
+
+exports.getAssociatedTour = catchAsync(async (req, res, next) => {
+    const user = await User.findById(req.params.id)
+    if(!user) return next(new AppError('User not found', 404))
+    if(user.role === 'guide' || user.role === 'lead-guide') {
+        await user.populate({
+            path: 'tour',
+            select: 'name duration difficulty maxGroupSize price summary imageCover startLocation'
+        })
+        res.status(200).json({
+            status: 'success',
+            data: user
+        })
+    }
 })
 
 // Controller factory functions to handle CRUD operations for users
