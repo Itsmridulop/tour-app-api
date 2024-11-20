@@ -43,6 +43,10 @@ const userSchema = new Schema({
         },
         default: 'user'
     },
+    tour: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Tour'
+    }],
     active: {
         type: Boolean,
         default: true,
