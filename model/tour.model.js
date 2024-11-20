@@ -45,12 +45,12 @@ const tourSchema = Schema({
     },
     discount: {
         type: Number,
-        validate: {
-            validator: function (val) {
-                return this.price > val
-            },
-            message: 'Discount must be lesser then accual price.'
-        }
+        // validate: {
+        //     validator: function (val) {
+        //         return this.price > val
+        //     },
+        //     message: 'Discount must be lesser then accual price.'
+        // }
     },
     summary: {
         type: String,
