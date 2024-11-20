@@ -25,9 +25,9 @@ exports.updateOne = model => catchAsync(async (req, res, next) => {
 })
 
 exports.createOne = model => catchAsync(async (req, res, next) => {
-    const newDocument = await model.create({ ...req.body, user: req.user.id, tour: req.params.tourId || req.body.tour})
+    const newDocument = await model.create({ ...req.body, user: req.user.id, tour: req.params.tourId || req.body.tour })
     newDocument.password = undefined
-    res.status(201).json(   {
+    res.status(201).json({
         status: 'success',
         data: newDocument
     })
@@ -35,7 +35,7 @@ exports.createOne = model => catchAsync(async (req, res, next) => {
 
 exports.getOne = (model, populate) => catchAsync(async (req, res, next) => {
     let features = new APIFeatures(model.findById(req.params.id || req.user.id), req.query).filter().fieldSelect()
-    if(populate) features.query = features.query.populate(populate)
+    if (populate) features.query = features.query.populate(populate)
     const document = await features.query
     if (document.length === 0) return next(new AppError('No document found', 404))
     res.status(200).json({
