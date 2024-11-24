@@ -10,6 +10,7 @@ const reviewSchema = new Schema({
     },
     review: {
         type: String,
+        trim: true,
         required: [true, 'Please give a review to this tour.']
     },
     createdAt: {
@@ -74,9 +75,7 @@ reviewSchema.pre(/^findOneAnd/, async function (next) {
 
 
 reviewSchema.post(/^findOneAnd/, async function () {
-    console.log(this.reviewData)
     await this.reviewData.constructor.calAverageRating(this.reviewData.tour)
-    console.log('after')
 })
 
 reviewSchema.pre(/^find/, function (next) {
