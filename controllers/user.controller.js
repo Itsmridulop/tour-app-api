@@ -67,7 +67,7 @@ const filter = (obj, ...allowedField) => {
 // Update current user’s profile (name and photo only, no password update)
 exports.updateMe = catchAsync(async (req, res, next) => {
     if (req.body.password || req.body.passwordConfirm) return next(new AppError('Unable to update your password.', 400))
-    const filteredBody = filter(req.body, 'name', 'photo')
+    const filteredBody = filter(req.body, 'name', 'photo', 'reviewedIn')
     const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, { new: true, runValidators: true })
     res.status(200).json({
         status: 'success',

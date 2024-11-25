@@ -51,6 +51,9 @@ const userSchema = new Schema({
         type: Boolean,
         default: true,
     },
+    reviewedIn: [{
+        type: Schema.Types.ObjectId,
+    }],
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date
