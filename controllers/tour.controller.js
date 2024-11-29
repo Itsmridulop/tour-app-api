@@ -22,7 +22,7 @@ exports.resizeTourImage = catchAsync(async (req, res, next) => {
             await new Promise((resolve, reject) => {
                 const stream = cloudinary.uploader.upload_stream(
                     { resource_type: 'image', public_id: filename },
-                    (error, uploadedImage) => {
+                    (error, uploadedImage) =>   {
                         if (error) return reject(error);
                         req.body.imageCover = uploadedImage.secure_url;
                         resolve();
@@ -33,7 +33,7 @@ exports.resizeTourImage = catchAsync(async (req, res, next) => {
         }
 
         if (req.files.images) {
-            req.body.images = await Promise.all(
+            req.body.images = req.body.images.concat(await Promise.all(
                 req.files.images.map(async (file, idx) => {
                     const filename = `tour-${req.params.id}-${Date.now()}-${idx + 1}.jpg`;
                     const buffer = await sharp(file.buffer).resize(2000, 1333).toFormat('jpeg').jpeg({ quality: 100 }).toBuffer();
@@ -48,7 +48,7 @@ exports.resizeTourImage = catchAsync(async (req, res, next) => {
                         streamifier.createReadStream(buffer).pipe(stream);
                     });
                 })
-            );
+            ));
         }
         next();
     } catch (error) {
@@ -57,6 +57,7 @@ exports.resizeTourImage = catchAsync(async (req, res, next) => {
 })
 
 exports.FindGuideId = catchAsync(async (req, res, next) => {
+    
     if(!req.body.guide) return next()
     const guideArr = await Promise.all(req.body.guides.map(async guide => {
         const guideDoc = await User.findOneAndUpdate({ email: guide.email }, { $addToSet: { tour: req.params.id } }, { new: true })
