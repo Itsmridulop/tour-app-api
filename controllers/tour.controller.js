@@ -11,8 +11,7 @@ const upload = require("../cloudinary.config");
 
 exports.getRecommendedTours = catchAsync(async (req, res, next) => {
   try {
-    const tourName = req.user?.resentBooked;
-    if (!tourName) return next();
+    const tourName = req.user?.resentBooked ?? "all";
     const response = await axios.get("http://localhost:8000/recommend", {
       params: { tour_name: tourName },
       headers: {
